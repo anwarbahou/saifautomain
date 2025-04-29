@@ -1,18 +1,57 @@
-import React, { useState } from 'react';
-import { featuredCars } from '../../data/cars';
+import React, { useState, useEffect } from 'react';
 import CarCard from './CarCard';
 import { Button } from '../common';
-import { Car } from '../../types';
+import { carService, Car } from '../../services/carService';
 
 const carTypes = ['All', 'Sedan', 'SUV', 'Luxury', 'Electric', 'Truck', 'Sports'];
 
 const FeaturedCars: React.FC = () => {
   const [activeType, setActiveType] = useState('All');
   const [hoveredType, setHoveredType] = useState<string | null>(null);
+  const [cars, setCars] = useState<Car[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
+  useEffect(() => {
+    const fetchCars = async () => {
+      try {
+        setLoading(true);
+        const data = await carService.getAllCars();
+        setCars(data);
+      } catch (err) {
+        setError('Failed to load cars. Please try again later.');
+        console.error('Error fetching cars:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCars();
+  }, []);
+
   const filteredCars = activeType === 'All' 
-    ? featuredCars 
-    : featuredCars.filter(car => car.type === activeType);
+    ? cars 
+    : cars.filter(car => car.type === activeType);
+
+  if (loading) {
+    return (
+      <section className="section-padding bg-silver-100">
+        <div className="container text-center">
+          <p className="text-lg text-gray-600">Loading cars...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="section-padding bg-silver-100">
+        <div className="container text-center">
+          <p className="text-lg text-red-600">{error}</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="cars" className="section-padding bg-silver-100">

@@ -12,7 +12,6 @@ const HeroSection: React.FC = () => {
       <div className="absolute inset-0 z-0">
         <img 
           src="https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
-          alt="Luxury car in the city" 
           className="w-full h-full object-cover opacity-30"
         />
       </div>
