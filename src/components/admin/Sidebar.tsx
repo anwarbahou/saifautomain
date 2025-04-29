@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Car, 
@@ -10,6 +10,7 @@ import {
   FileText, 
   LogOut 
 } from 'lucide-react';
+import { auth } from '../../services/auth';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -36,6 +37,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, to, isActi
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/admin' },
@@ -46,6 +48,15 @@ const Sidebar: React.FC = () => {
     { icon: FileText, label: 'Reports', path: '/admin/reports' },
     { icon: Settings, label: 'Settings', path: '/admin/settings' },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <div className="w-64 bg-white h-full border-r border-gray-200 flex flex-col">
@@ -68,7 +79,10 @@ const Sidebar: React.FC = () => {
       </div>
       
       <div className="p-4 border-t border-gray-200">
-        <button className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 w-full transition-colors">
+        <button 
+          className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 w-full transition-colors"
+          onClick={handleLogout}
+        >
           <LogOut size={20} />
           <span className="font-medium">Logout</span>
         </button>
