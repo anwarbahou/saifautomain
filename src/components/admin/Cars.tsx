@@ -1,119 +1,210 @@
-import React, { useEffect, useState } from 'react';
-import { carService, Car } from '../../services/carService';
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Chip,
+  Modal,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+} from '@mui/icons-material';
+import { useState } from 'react';
 
-const Cars: React.FC = () => {
-  const [cars, setCars] = useState<Car[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Mock data for cars
+const cars = [
+  {
+    id: 1,
+    name: 'Toyota Camry',
+    type: 'Sedan',
+    status: 'Available',
+    price: '$50/day',
+    location: 'New York',
+  },
+  {
+    id: 2,
+    name: 'Honda CR-V',
+    type: 'SUV',
+    status: 'Rented',
+    price: '$65/day',
+    location: 'Los Angeles',
+  },
+  {
+    id: 3,
+    name: 'Tesla Model 3',
+    type: 'Electric',
+    status: 'Available',
+    price: '$80/day',
+    location: 'San Francisco',
+  },
+  {
+    id: 4,
+    name: 'BMW X5',
+    type: 'SUV',
+    status: 'Maintenance',
+    price: '$90/day',
+    location: 'Chicago',
+  },
+];
 
-  useEffect(() => {
-    const fetchCars = async () => {
-      try {
-        const data = await carService.getAllCars();
-        setCars(data);
-      } catch (err) {
-        setError('Failed to fetch cars');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+const statusColors = {
+  Available: 'success',
+  Rented: 'warning',
+  Maintenance: 'error',
+} as const;
 
-    fetchCars();
-  }, []);
+export default function Cars() {
+  const [open, setOpen] = useState(false);
 
-  const handleStatusChange = async (id: number, newStatus: 'available' | 'rented' | 'maintenance') => {
-    try {
-      await carService.updateCarStatus(id, newStatus);
-      setCars(cars.map(car => 
-        car.id === id ? { ...car, status: newStatus } : car
-      ));
-    } catch (err) {
-      console.error('Failed to update car status:', err);
-    }
-  };
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">Cars Management</h1>
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">All Cars</h2>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-            Add New Car
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Car</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price/Day</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {cars.map((car) => (
-                <tr key={car.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0">
-                        <img className="h-10 w-10 rounded-full" src={car.image_url} alt={car.name} />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{car.name}</div>
-                        <div className="text-sm text-gray-500">{car.year}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{car.type}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">${car.price_per_day}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      car.status === 'available' ? 'bg-green-100 text-green-800' :
-                      car.status === 'rented' ? 'bg-blue-100 text-blue-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {car.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button 
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                      onClick={() => handleStatusChange(car.id, 'available')}
-                    >
-                      Available
-                    </button>
-                    <button 
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                      onClick={() => handleStatusChange(car.id, 'rented')}
-                    >
-                      Rented
-                    </button>
-                    <button 
-                      className="text-red-600 hover:text-red-900"
-                      onClick={() => handleStatusChange(car.id, 'maintenance')}
-                    >
-                      Maintenance
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h4">
+          Cars Management
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleOpen}
+        >
+          Add New Car
+        </Button>
+      </Box>
 
-export default Cars; 
+      <Card>
+        <CardContent>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Price</TableCell>
+                  <TableCell>Location</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {cars.map((car) => (
+                  <TableRow key={car.id}>
+                    <TableCell>{car.name}</TableCell>
+                    <TableCell>{car.type}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={car.status}
+                        color={statusColors[car.status as keyof typeof statusColors]}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{car.price}</TableCell>
+                    <TableCell>{car.location}</TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        size="small"
+                        onClick={() => {/* Edit logic */}}
+                        sx={{ mr: 1 }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => {/* Delete logic */}}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent>
+      </Card>
+
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="add-car-modal"
+        aria-describedby="add-car-form"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+          borderRadius: 1,
+        }}>
+          <Typography variant="h6" component="h2" sx={{ mb: 3 }}>
+            Add New Car
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              label="Car Name"
+              fullWidth
+              required
+            />
+            <FormControl fullWidth required>
+              <InputLabel>Type</InputLabel>
+              <Select label="Type">
+                <MenuItem value="sedan">Sedan</MenuItem>
+                <MenuItem value="suv">SUV</MenuItem>
+                <MenuItem value="sports">Sports</MenuItem>
+                <MenuItem value="luxury">Luxury</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              label="Price per Day"
+              type="number"
+              fullWidth
+              required
+            />
+            <TextField
+              label="Location"
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              multiline
+              rows={4}
+              fullWidth
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+              <Button onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button variant="contained">
+                Add Car
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Modal>
+    </Box>
+  );
+} 
